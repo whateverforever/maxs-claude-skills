@@ -96,6 +96,8 @@ When the user requests double-sided cards, both the front and back are phrased a
 
 **Each side's question must *contain* the other side's answer in its wording, and that embedded answer must be wrapped in `<b>...</b>` tags.**
 
+**A side must NEVER contain its own answer, even as plain-text context.** This is the most common failure mode: you add helpful phrasing like "For NVIDIA GPU codegen, MLIR lowers…" and accidentally reveal the answer that the reader was supposed to recall. If context words overlap with the answer, rephrase to remove the leak.
+
 When you see side A, you can answer it — and that answer appears as a bold word or phrase inside side B's question (and vice versa). Both sides are self-contained questions, but they embed each other's answers in bold.
 
 GOOD example:
@@ -120,7 +122,19 @@ BAD example (tautological):
 - Back: *"Which ELF section is called .symtab?"*
 - See back → answer: ".symtab" → front doesn't help you know it's called .symtab, it just asks a parallel question about the same concept.
 
-After drafting double-sided cards, verify each pair by checking: "If I see only side A, does side B's text contain my answer? And vice versa?" If either direction fails, rewrite.
+BAD example (self-answering — most common failure):
+- Front: *"What vendor-specific MLIR dialect does the GPU dialect lower to for <b>NVIDIA</b> GPUs?"*
+- Back: *"For NVIDIA GPU codegen, MLIR lowers GPU ops to the <b>NVVM dialect</b>. What vendor is NVVM for?"*
+- Back asks "What vendor is NVVM for?" but already says "For NVIDIA GPU codegen" — the reader sees the answer without recalling anything.
+- Fix by removing the leaked context: Back → *"Which vendor's GPUs use the <b>NVVM dialect</b> as their MLIR lowering target?"*
+
+After drafting double-sided cards, verify **every** pair with this checklist:
+1. "If I see only side A, does side B's text contain my answer in bold?" If no → rewrite.
+2. "If I see only side B, does side A's text contain my answer in bold?" If no → rewrite.
+3. "Does side A contain its own answer anywhere (even in plain text context)?" If yes → rephrase to remove the leak.
+4. "Does side B contain its own answer anywhere (even in plain text context)?" If yes → rephrase to remove the leak.
+
+This checklist must be applied to **every card**, not just the first few. Quality tends to drift on longer batches — if anything, slow down and be more careful on cards 8+.
 
 ### 4. Generate the TSV File
 
